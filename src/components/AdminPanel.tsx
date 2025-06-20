@@ -1,16 +1,19 @@
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, Clock, User, Phone, Mail, CreditCard, Search, Filter } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, User, Phone, Mail, CreditCard, Search, Filter, Settings, Scissors } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Booking } from '@/pages/Index';
+import { Booking, Service } from '@/pages/Index';
+import ServiceManagement from './ServiceManagement';
+import ScheduleManagement from './ScheduleManagement';
 
 interface AdminPanelProps {
   onBack: () => void;
 }
 
 const AdminPanel = ({ onBack }: AdminPanelProps) => {
+  const [activeTab, setActiveTab] = useState<'bookings' | 'services' | 'schedule'>('bookings');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -73,6 +76,11 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
     localStorage.setItem('barber_bookings', JSON.stringify(updatedBookings));
   };
 
+  const handleServicesUpdate = (services: Service[]) => {
+    // Esta función se puede usar para actualizar otros componentes si es necesario
+    console.log('Services updated:', services);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed': return 'text-green-400 bg-green-400/20';
@@ -122,7 +130,7 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-white">Panel de Administración</h1>
-                <p className="text-yellow-400">Gestión de reservas</p>
+                <p className="text-yellow-400">Gestión completa de la barbería</p>
               </div>
             </div>
           </div>
@@ -130,153 +138,194 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
-            <h3 className="text-gray-400 text-sm">Total Reservas</h3>
-            <p className="text-2xl font-bold text-white">{filteredBookings.length}</p>
-          </div>
-          <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
-            <h3 className="text-gray-400 text-sm">Reservas Hoy</h3>
-            <p className="text-2xl font-bold text-white">
-              {filteredBookings.filter(b => b.date === new Date().toISOString().split('T')[0]).length}
-            </p>
-          </div>
-          <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
-            <h3 className="text-gray-400 text-sm">Ingresos (Filtrados)</h3>
-            <p className="text-2xl font-bold text-yellow-400">
-              ${getTotalRevenue().toLocaleString()}
-            </p>
-          </div>
-          <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
-            <h3 className="text-gray-400 text-sm">Pagos Pendientes</h3>
-            <p className="text-2xl font-bold text-orange-400">
-              {filteredBookings.filter(b => b.paymentStatus === 'pending').length}
-            </p>
-          </div>
+        {/* Navigation Tabs */}
+        <div className="flex space-x-1 mb-8 bg-gray-800/50 rounded-lg p-1">
+          <Button
+            onClick={() => setActiveTab('bookings')}
+            variant={activeTab === 'bookings' ? 'default' : 'ghost'}
+            className={`flex-1 ${activeTab === 'bookings' ? 'bg-yellow-500 text-black' : 'text-gray-300'}`}
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Reservas
+          </Button>
+          <Button
+            onClick={() => setActiveTab('services')}
+            variant={activeTab === 'services' ? 'default' : 'ghost'}
+            className={`flex-1 ${activeTab === 'services' ? 'bg-yellow-500 text-black' : 'text-gray-300'}`}
+          >
+            <Scissors className="h-4 w-4 mr-2" />
+            Servicios
+          </Button>
+          <Button
+            onClick={() => setActiveTab('schedule')}
+            variant={activeTab === 'schedule' ? 'default' : 'ghost'}
+            className={`flex-1 ${activeTab === 'schedule' ? 'bg-yellow-500 text-black' : 'text-gray-300'}`}
+          >
+            <Clock className="h-4 w-4 mr-2" />
+            Horarios
+          </Button>
         </div>
 
-        {/* Filters */}
-        <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Buscar por nombre, email o servicio..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-gray-700 border-gray-600 text-white"
-                />
+        {/* Content based on active tab */}
+        {activeTab === 'bookings' && (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+                <h3 className="text-gray-400 text-sm">Total Reservas</h3>
+                <p className="text-2xl font-bold text-white">{filteredBookings.length}</p>
+              </div>
+              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+                <h3 className="text-gray-400 text-sm">Reservas Hoy</h3>
+                <p className="text-2xl font-bold text-white">
+                  {filteredBookings.filter(b => b.date === new Date().toISOString().split('T')[0]).length}
+                </p>
+              </div>
+              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+                <h3 className="text-gray-400 text-sm">Ingresos (Filtrados)</h3>
+                <p className="text-2xl font-bold text-yellow-400">
+                  ${getTotalRevenue().toLocaleString()}
+                </p>
+              </div>
+              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+                <h3 className="text-gray-400 text-sm">Pagos Pendientes</h3>
+                <p className="text-2xl font-bold text-orange-400">
+                  {filteredBookings.filter(b => b.paymentStatus === 'pending').length}
+                </p>
               </div>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48 bg-gray-700 border-gray-600 text-white">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-700 border-gray-600">
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="pending">Pendiente</SelectItem>
-                <SelectItem value="confirmed">Confirmado</SelectItem>
-                <SelectItem value="completed">Completado</SelectItem>
-                <SelectItem value="cancelled">Cancelado</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-48 bg-gray-700 border-gray-600 text-white">
-                <SelectValue placeholder="Fecha" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-700 border-gray-600">
-                <SelectItem value="all">Todas las fechas</SelectItem>
-                <SelectItem value="today">Hoy</SelectItem>
-                <SelectItem value="week">Esta semana</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
 
-        {/* Bookings List */}
-        <div className="space-y-4">
-          {filteredBookings.length === 0 ? (
-            <div className="bg-gray-800/50 rounded-lg p-8 text-center border border-gray-700/50">
-              <p className="text-gray-400">No hay reservas que coincidan con los filtros.</p>
-            </div>
-          ) : (
-            filteredBookings.map((booking) => (
-              <div key={booking.id} className="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                  {/* Customer Info */}
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-yellow-400" />
-                      <span className="text-white font-semibold">{booking.customerName}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-400">
-                      <Mail className="h-3 w-3" />
-                      <span>{booking.customerEmail}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-400">
-                      <Phone className="h-3 w-3" />
-                      <span>{booking.customerPhone}</span>
-                    </div>
-                  </div>
-
-                  {/* Service & DateTime */}
-                  <div className="space-y-2">
-                    <h4 className="text-white font-semibold">{booking.service.name}</h4>
-                    <div className="flex items-center space-x-2 text-sm text-gray-400">
-                      <Calendar className="h-3 w-3" />
-                      <span>{formatDate(booking.date)}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-400">
-                      <Clock className="h-3 w-3" />
-                      <span>{booking.time} hs ({booking.service.duration} min)</span>
-                    </div>
-                  </div>
-
-                  {/* Status & Payment */}
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(booking.status)}`}>
-                        {booking.status === 'confirmed' && 'Confirmado'}
-                        {booking.status === 'pending' && 'Pendiente'}
-                        {booking.status === 'completed' && 'Completado'}
-                        {booking.status === 'cancelled' && 'Cancelado'}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CreditCard className="h-3 w-3 text-gray-400" />
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getPaymentStatusColor(booking.paymentStatus)}`}>
-                        {booking.paymentStatus === 'paid' ? 'Pagado' : 'Pendiente'}
-                      </span>
-                    </div>
-                    <div className="text-yellow-400 font-bold">
-                      ${booking.service.price.toLocaleString()}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex flex-col space-y-2">
-                    <Select
-                      value={booking.status}
-                      onValueChange={(value) => updateBookingStatus(booking.id, value as Booking['status'])}
-                    >
-                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-gray-700 border-gray-600">
-                        <SelectItem value="pending">Pendiente</SelectItem>
-                        <SelectItem value="confirmed">Confirmado</SelectItem>
-                        <SelectItem value="completed">Completado</SelectItem>
-                        <SelectItem value="cancelled">Cancelado</SelectItem>
-                      </SelectContent>
-                    </Select>
+            {/* Filters */}
+            <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50 mb-8">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Buscar por nombre, email o servicio..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 bg-gray-700 border-gray-600 text-white"
+                    />
                   </div>
                 </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-48 bg-gray-700 border-gray-600 text-white">
+                    <SelectValue placeholder="Estado" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectItem value="all">Todos los estados</SelectItem>
+                    <SelectItem value="pending">Pendiente</SelectItem>
+                    <SelectItem value="confirmed">Confirmado</SelectItem>
+                    <SelectItem value="completed">Completado</SelectItem>
+                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger className="w-48 bg-gray-700 border-gray-600 text-white">
+                    <SelectValue placeholder="Fecha" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectItem value="all">Todas las fechas</SelectItem>
+                    <SelectItem value="today">Hoy</SelectItem>
+                    <SelectItem value="week">Esta semana</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            ))
-          )}
-        </div>
+            </div>
+
+            {/* Bookings List */}
+            <div className="space-y-4">
+              {filteredBookings.length === 0 ? (
+                <div className="bg-gray-800/50 rounded-lg p-8 text-center border border-gray-700/50">
+                  <p className="text-gray-400">No hay reservas que coincidan con los filtros.</p>
+                </div>
+              ) : (
+                filteredBookings.map((booking) => (
+                  <div key={booking.id} className="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                      {/* Customer Info */}
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <User className="h-4 w-4 text-yellow-400" />
+                          <span className="text-white font-semibold">{booking.customerName}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-gray-400">
+                          <Mail className="h-3 w-3" />
+                          <span>{booking.customerEmail}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-gray-400">
+                          <Phone className="h-3 w-3" />
+                          <span>{booking.customerPhone}</span>
+                        </div>
+                      </div>
+
+                      {/* Service & DateTime */}
+                      <div className="space-y-2">
+                        <h4 className="text-white font-semibold">{booking.service.name}</h4>
+                        <div className="flex items-center space-x-2 text-sm text-gray-400">
+                          <Calendar className="h-3 w-3" />
+                          <span>{formatDate(booking.date)}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-gray-400">
+                          <Clock className="h-3 w-3" />
+                          <span>{booking.time} hs ({booking.service.duration} min)</span>
+                        </div>
+                      </div>
+
+                      {/* Status & Payment */}
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(booking.status)}`}>
+                            {booking.status === 'confirmed' && 'Confirmado'}
+                            {booking.status === 'pending' && 'Pendiente'}
+                            {booking.status === 'completed' && 'Completado'}
+                            {booking.status === 'cancelled' && 'Cancelado'}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <CreditCard className="h-3 w-3 text-gray-400" />
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getPaymentStatusColor(booking.paymentStatus)}`}>
+                            {booking.paymentStatus === 'paid' ? 'Pagado' : 'Pendiente'}
+                          </span>
+                        </div>
+                        <div className="text-yellow-400 font-bold">
+                          ${booking.service.price.toLocaleString()}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-col space-y-2">
+                        <Select
+                          value={booking.status}
+                          onValueChange={(value) => updateBookingStatus(booking.id, value as Booking['status'])}
+                        >
+                          <SelectTrigger className="bg-gray-700 border-gray-600 text-white text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-700 border-gray-600">
+                            <SelectItem value="pending">Pendiente</SelectItem>
+                            <SelectItem value="confirmed">Confirmado</SelectItem>
+                            <SelectItem value="completed">Completado</SelectItem>
+                            <SelectItem value="cancelled">Cancelado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </>
+        )}
+
+        {activeTab === 'services' && (
+          <ServiceManagement onServicesUpdate={handleServicesUpdate} />
+        )}
+
+        {activeTab === 'schedule' && (
+          <ScheduleManagement />
+        )}
       </div>
     </div>
   );

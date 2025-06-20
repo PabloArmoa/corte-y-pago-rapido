@@ -1,59 +1,8 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, Clock, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Service } from '@/pages/Index';
-
-const services: Service[] = [
-  {
-    id: '1',
-    name: 'Corte Clásico',
-    price: 15000,
-    duration: 30,
-    description: 'Corte tradicional con tijeras y máquina',
-    image: '/placeholder.svg'
-  },
-  {
-    id: '2',
-    name: 'Fade Moderno',
-    price: 20000,
-    duration: 45,
-    description: 'Degradado moderno con terminaciones perfectas',
-    image: '/placeholder.svg'
-  },
-  {
-    id: '3',
-    name: 'Corte + Barba',
-    price: 25000,
-    duration: 60,
-    description: 'Servicio completo de corte y arreglo de barba',
-    image: '/placeholder.svg'
-  },
-  {
-    id: '4',
-    name: 'Degradado Premium',
-    price: 22000,
-    duration: 50,
-    description: 'Degradado de alta precisión con detalles',
-    image: '/placeholder.svg'
-  },
-  {
-    id: '5',
-    name: 'Corte Niños',
-    price: 12000,
-    duration: 25,
-    description: 'Corte especial para los más pequeños',
-    image: '/placeholder.svg'
-  },
-  {
-    id: '6',
-    name: 'Arreglo de Cejas',
-    price: 8000,
-    duration: 15,
-    description: 'Perfilado y arreglo profesional de cejas',
-    image: '/placeholder.svg'
-  }
-];
 
 interface ServiceSelectionProps {
   selectedService: Service | null;
@@ -62,6 +11,70 @@ interface ServiceSelectionProps {
 }
 
 const ServiceSelection = ({ selectedService, onServiceSelect, onNext }: ServiceSelectionProps) => {
+  const [services, setServices] = useState<Service[]>([]);
+
+  useEffect(() => {
+    // Cargar servicios desde localStorage o usar valores por defecto
+    const savedServices = localStorage.getItem('barber_services');
+    if (savedServices) {
+      setServices(JSON.parse(savedServices));
+    } else {
+      // Servicios por defecto
+      const defaultServices: Service[] = [
+        {
+          id: '1',
+          name: 'Corte Clásico',
+          price: 15000,
+          duration: 30,
+          description: 'Corte tradicional con tijeras y máquina',
+          image: '/placeholder.svg'
+        },
+        {
+          id: '2',
+          name: 'Fade Moderno',
+          price: 20000,
+          duration: 45,
+          description: 'Degradado moderno con terminaciones perfectas',
+          image: '/placeholder.svg'
+        },
+        {
+          id: '3',
+          name: 'Corte + Barba',
+          price: 25000,
+          duration: 60,
+          description: 'Servicio completo de corte y arreglo de barba',
+          image: '/placeholder.svg'
+        },
+        {
+          id: '4',
+          name: 'Degradado Premium',
+          price: 22000,
+          duration: 50,
+          description: 'Degradado de alta precisión con detalles',
+          image: '/placeholder.svg'
+        },
+        {
+          id: '5',
+          name: 'Corte Niños',
+          price: 12000,
+          duration: 25,
+          description: 'Corte especial para los más pequeños',
+          image: '/placeholder.svg'
+        },
+        {
+          id: '6',
+          name: 'Arreglo de Cejas',
+          price: 8000,
+          duration: 15,
+          description: 'Perfilado y arreglo profesional de cejas',
+          image: '/placeholder.svg'
+        }
+      ];
+      setServices(defaultServices);
+      localStorage.setItem('barber_services', JSON.stringify(defaultServices));
+    }
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
