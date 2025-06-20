@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Calendar, Clock, Scissors, User, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import TimeSlotPicker from '@/components/TimeSlotPicker';
 import CustomerForm from '@/components/CustomerForm';
 import PaymentSection from '@/components/PaymentSection';
 import AdminPanel from '@/components/AdminPanel';
+import AdminLogin from '@/components/AdminLogin';
 
 export type Service = {
   id: string;
@@ -46,6 +46,8 @@ const Index = () => {
     phone: ''
   });
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
   const resetBooking = () => {
     setCurrentStep(1);
@@ -55,8 +57,32 @@ const Index = () => {
     setCustomerData({ name: '', email: '', phone: '' });
   };
 
-  if (showAdmin) {
-    return <AdminPanel onBack={() => setShowAdmin(false)} />;
+  const handleAdminLogin = () => {
+    setShowAdminLogin(true);
+  };
+
+  const handleAdminLoginSuccess = () => {
+    setIsAdminAuthenticated(true);
+    setShowAdminLogin(false);
+    setShowAdmin(true);
+  };
+
+  const handleAdminBack = () => {
+    setShowAdmin(false);
+    setIsAdminAuthenticated(false);
+  };
+
+  if (showAdminLogin) {
+    return (
+      <AdminLogin
+        onSuccess={handleAdminLoginSuccess}
+        onBack={() => setShowAdminLogin(false)}
+      />
+    );
+  }
+
+  if (showAdmin && isAdminAuthenticated) {
+    return <AdminPanel onBack={handleAdminBack} />;
   }
 
   return (
@@ -75,7 +101,7 @@ const Index = () => {
               </div>
             </div>
             <Button
-              onClick={() => setShowAdmin(true)}
+              onClick={handleAdminLogin}
               variant="outline"
               className="border-yellow-500 text-yellow-400 hover:bg-yellow-500 hover:text-black"
             >
